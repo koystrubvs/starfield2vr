@@ -26,6 +26,9 @@ namespace GameFlow
             bool alternativeJoyLayout{false};
             bool decoupledPitch{false};
             bool pawnControl{true};
+            bool snapTurn{false};
+            float snapTurnAngle{45.0f};
+            float snapTurnPending{0.0f}; // non-zero = apply this yaw delta (radians) in camera manager
         } internalSettings{};
         DebugData debugData{};
     };

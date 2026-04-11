@@ -25,44 +25,50 @@ void CreationEngineEntry::on_draw_ui()
         return;
     }
     auto vr = VR::get();
-    if(m_hud_scale->draw("HUD Scale"))
+    if(m_hud_scale->draw("Масштаб HUD"))
     {
         GameFlow::gStore.hudSettings.hudScale = m_hud_scale->value();
     }
-    if(m_hud_perspective->draw("HUD Perspective"))
+    if(m_hud_perspective->draw("Перспектива HUD"))
     {
         GameFlow::gStore.hudSettings.perspective = (int) m_hud_perspective->value();
     }
-    if(m_alternative_joy_layout->draw("Alternative Joy Layout"))
+    if(m_alternative_joy_layout->draw("Альт. раскладка джойстика"))
     {
         GameFlow::gStore.internalSettings.alternativeJoyLayout = m_alternative_joy_layout->value();
     }
-    if(m_dominant_eye->draw("Dominant Eye"))
+    if(m_dominant_eye->draw("Ведущий глаз"))
     {
         ModConstants::dominantEye = m_dominant_eye->value();
     }
-    if(m_head_tracking_type->draw("Head Tracking Type"))
+    if(m_head_tracking_type->draw("Тип прицеливания"))
     {
         ModConstants::headTrackingType = m_head_tracking_type->value();
     }
-    if(m_pawn_control_rotation->draw("Pawn Control Rotation"))
+    if(m_pawn_control_rotation->draw("Поворот персонажа стиком"))
     {
         GameFlow::gStore.internalSettings.pawnControl = m_pawn_control_rotation->value();
     }
-    if(m_decoupled_pitch->draw("Decoupled Pitch"))
+    if(m_decoupled_pitch->draw("Отвязать наклон головы"))
     {
         GameFlow::gStore.internalSettings.decoupledPitch = m_decoupled_pitch->value();
     }
-    if(m_head_tracking_multiplier->draw("Head Tracking Sensitivity"))
+    if(m_head_tracking_multiplier->draw("Чувствительность головы"))
     {
         ModConstants::headTrackingMultiplier = m_head_tracking_multiplier->value();
     }
-    if(m_taa_anf_nvidia_fix->draw("Nvidia DLSS and TAA Fix"))
+    if(m_taa_anf_nvidia_fix->draw("Фикс NVIDIA DLSS и TAA"))
     {
         GameFlow::gStore.internalSettings.nvidiaAndTAAfix = m_taa_anf_nvidia_fix->value();
     }
-    if(m_disable_zoom->draw("Prevent Game controlled Zooming")) {
+    if(m_disable_zoom->draw("Блокировать зум игры")) {
         GameFlow::gStore.internalSettings.preventZoom = m_disable_zoom->value();
+    }
+    if(m_snap_turn->draw("Поворот щелчком")) {
+        GameFlow::gStore.internalSettings.snapTurn = m_snap_turn->value();
+    }
+    if(m_snap_turn_angle->draw("Угол поворота")) {
+        GameFlow::gStore.internalSettings.snapTurnAngle = m_snap_turn_angle->value();
     }
 
     for(auto& ui_part : GameFlow::gStore.debugData.ui_parts)
@@ -204,6 +210,8 @@ void CreationEngineEntry::on_config_load(const utility::Config& cfg, bool set_de
     GameFlow::gStore.hudSettings.perspective = (int) m_hud_perspective->value();
     GameFlow::gStore.internalSettings.alternativeJoyLayout = m_alternative_joy_layout->value();
     GameFlow::gStore.internalSettings.decoupledPitch = m_decoupled_pitch->value();
+    GameFlow::gStore.internalSettings.snapTurn = m_snap_turn->value();
+    GameFlow::gStore.internalSettings.snapTurnAngle = m_snap_turn_angle->value();
 }
 
 void CreationEngineEntry::on_config_save(utility::Config& cfg)

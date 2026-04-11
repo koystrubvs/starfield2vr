@@ -310,7 +310,8 @@ namespace Steam::MemoryOffsets
     inline uintptr_t GlobalPlayerRef()
     {
         // ID 922868
-        auto       pattern     = "48 8B 05 ? ? ? ? F6 80 22 11 00 00 08 74 19";
+        // Updated pattern for Starfield 1.16.236 - struct offset changed from 0x1122 to 0x112A
+        auto       pattern     = "48 8B 05 ? ? ? ? F6 80 2A 11 00 00 08 74 19 48 8D 88 F0";
         static auto address_ptr = InstructionRelocation(pattern, 3, 7, OffsetsTable::GetOffset(922868), 922868);
         return address_ptr;
     }

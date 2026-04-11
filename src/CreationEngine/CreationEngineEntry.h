@@ -19,14 +19,14 @@ public:
 
 private:
     inline static const std::vector<std::string> s_dominant_eye{
-        "Right",
-        "Left",
+        "Правый",
+        "Левый",
     };
 
     inline static const std::vector<std::string> s_aiming_mode{
-      "HeadGun",
-      "Free",
-      "HeadGunAlwaysOn",
+      "Голова = прицел",
+      "Свободный взгляд",
+      "Голова = прицел (всегда)",
   };
     const ModCombo::Ptr m_dominant_eye{ ModCombo::create(generate_name("DominantEye"), s_dominant_eye) };
     const ModSlider::Ptr m_head_tracking_multiplier{ ModSlider::create(generate_name("HeadTrackingSensitivity"), 0.5, 2.0, 1.0) };
@@ -38,7 +38,9 @@ private:
     const ModSlider::Ptr m_hud_scale{ModSlider::create(generate_name("HUDScale"), 0.1, 1.0, 0.4) };
     const ModSlider::Ptr m_hud_perspective{ ModSlider::create(generate_name("HUDPerspective"), 0, 600, 150) };
     const ModToggle::Ptr m_alternative_joy_layout{ ModToggle::create(generate_name("JoyAlternativeLayout"), false) };
+    const ModToggle::Ptr m_snap_turn{ ModToggle::create(generate_name("SnapTurn"), false) };
+    const ModSlider::Ptr m_snap_turn_angle{ ModSlider::create(generate_name("SnapTurnAngle"), 15.0, 90.0, 45.0) };
 
 
-    ValueList m_options{*m_dominant_eye, *m_head_tracking_multiplier, *m_head_tracking_type, *m_taa_anf_nvidia_fix, *m_disable_zoom, *m_hud_scale, *m_hud_perspective, *m_alternative_joy_layout, *m_decoupled_pitch, *m_pawn_control_rotation };
+    ValueList m_options{*m_dominant_eye, *m_head_tracking_multiplier, *m_head_tracking_type, *m_taa_anf_nvidia_fix, *m_disable_zoom, *m_hud_scale, *m_hud_perspective, *m_alternative_joy_layout, *m_decoupled_pitch, *m_pawn_control_rotation, *m_snap_turn, *m_snap_turn_angle };
 };

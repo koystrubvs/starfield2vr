@@ -236,8 +236,31 @@ void VR::on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE
     pXinputGamepad->sThumbLX = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbLX + left_joystick_axis.x * 32767.0f), -32767.0f, 32767.0f);
     pXinputGamepad->sThumbLY = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbLY + left_joystick_axis.y * 32767.0f), -32767.0f, 32767.0f);
 
-    pXinputGamepad->sThumbRX = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbRX + right_joystick_axis.x * 32767.0f), -32767.0f, 32767.0f);
-    pXinputGamepad->sThumbRY = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbRY + right_joystick_axis.y * 32767.0f), -32767.0f, 32767.0f);
+    // Snap turn: instant yaw rotation, no pitch from stick
+    if (GameFlow::gStore.internalSettings.snapTurn) {
+        static bool snap_triggered = false;
+        constexpr float snap_threshold = 0.6f;
+        constexpr float snap_reset_threshold = 0.3f;
+        constexpr float deg_to_rad = 3.14159265f / 180.0f;
+
+        if (!snap_triggered && std::abs(right_joystick_axis.x) > snap_threshold) {
+            // Apply angle directly via camera manager (instant, no interpolation)
+            float angle_rad = GameFlow::gStore.internalSettings.snapTurnAngle * deg_to_rad;
+            GameFlow::gStore.internalSettings.snapTurnPending = (right_joystick_axis.x > 0) ? angle_rad : -angle_rad;
+            snap_triggered = true;
+        }
+
+        if (snap_triggered && std::abs(right_joystick_axis.x) < snap_reset_threshold) {
+            snap_triggered = false;
+        }
+
+        // Block all stick rotation — snap turn handles yaw, head handles pitch
+        pXinputGamepad->sThumbRX = 0;
+        pXinputGamepad->sThumbRY = 0;
+    } else {
+        pXinputGamepad->sThumbRX = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbRX + right_joystick_axis.x * 32767.0f), -32767.0f, 32767.0f);
+        pXinputGamepad->sThumbRY = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbRY + right_joystick_axis.y * 32767.0f), -32767.0f, 32767.0f);
+    }
 
 
     // Touching the thumbrest allows us to use the thumbstick as a dpad.  Additional options are for controllers without capacitives/games that rely solely on DPad

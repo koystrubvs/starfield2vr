@@ -354,6 +354,14 @@ void CreationEngineCameraManager::onFPSGetCameraRotation(RE::FirstPersonState *f
                 auto corrected_yaw = p_player->data.angle.z - delta_yaw + 2.0f * glm::pi<float>();
                 corrected_yaw = std::fmod(corrected_yaw, 2.0f * glm::pi<float>());
                 p_player->data.angle.z = corrected_yaw;
+
+                // Snap turn: apply pending yaw delta instantly
+                if (GameFlow::gStore.internalSettings.snapTurnPending != 0.0f) {
+                    float snap_delta = GameFlow::gStore.internalSettings.snapTurnPending;
+                    p_player->data.angle.z = std::fmod(p_player->data.angle.z + snap_delta + 2.0f * glm::pi<float>(), 2.0f * glm::pi<float>());
+                    yaw_offset += snap_delta;
+                    GameFlow::gStore.internalSettings.snapTurnPending = 0.0f;
+                }
             }
             if (GameFlow::gStore.internalSettings.decoupledPitch && !((ModConstants::headTrackingType == 0 && GameFlow::isAimingDownSights()) || ModConstants::headTrackingType == 2)) {
                 pitch = 0.0f;
