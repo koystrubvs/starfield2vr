@@ -10,6 +10,8 @@
 #include "CreationEngineCameraManager.h"
 #include "CreationEngineInputManager.h"
 #include "CreationEngineRendererModule.h"
+#include "CreationEngineSingletonManager.h"
+#include "RE/P/PlayerCamera.h"
 
 std::optional<std::string> CreationEngineEntry::on_initialize()
 {
@@ -69,6 +71,46 @@ void CreationEngineEntry::on_draw_ui()
     }
     if(m_snap_turn_angle->draw("Угол поворота")) {
         GameFlow::gStore.internalSettings.snapTurnAngle = m_snap_turn_angle->value();
+    }
+
+    // Debug: show camera state for snap turn debugging
+    {
+        ImGui::Separator();
+        ImGui::Text("== Debug ==");
+        auto p_camera = CreationEngineSingletonManager::GetPlayerCameraSingleton();
+        if (p_camera && p_camera->currentState) {
+            auto state = p_camera->currentState;
+            const char* state_name = "Unknown";
+            if (state == (RE::TESCameraState*)p_camera->pFirstPersonModeState) state_name = "FirstPerson";
+            else if (state == p_camera->pThirdPersonState) state_name = "ThirdPerson";
+            else if (state == p_camera->pFlightCameraState) state_name = "Flight";
+            else if (state == p_camera->pShipFarCameraState) state_name = "ShipFarTravel";
+            else if (state == p_camera->pShipActionCameraState) state_name = "ShipAction";
+            else if (state == p_camera->pShipTargetingCameraState) state_name = "ShipTargeting";
+            else if (state == p_camera->pShipCameraOrbitState) state_name = "ShipOrbit";
+            else if (state == p_camera->pVehicleCameraState) state_name = "Vehicle";
+            else if (state == p_camera->pVanityState) state_name = "Vanity";
+            else if (state == p_camera->pIronSightState) state_name = "IronSight";
+            else if (state == p_camera->pDialogueCameraSTate) state_name = "Dialogue";
+            else if (state == p_camera->pPhotoModeCameraState) state_name = "PhotoMode";
+            else if (state == p_camera->pFurnitureCameraState) state_name = "Furniture";
+
+            bool in_ship = GameFlow::isInShipOrVehicle();
+            ImGui::Text("Camera: %s", state_name);
+            ImGui::Text("InShip: %s", in_ship ? "YES" : "NO");
+            ImGui::Text("SnapActive: %s",
+                (GameFlow::gStore.internalSettings.snapTurn && !in_ship) ? "YES" : "NO");
+
+            auto p_player = CreationEngineSingletonManager::GetPlayerRef();
+            if (p_player) {
+                ImGui::Text("actorState: 0x%08X", p_player->actorState);
+                ImGui::Text("actorState2: 0x%08X", p_player->actorState2);
+                ImGui::Text("FlyState: %d", (p_player->actorState >> 14) & 7);
+                ImGui::Text("WeaponDrawn: %s", p_player->IsWeaponDrawn() ? "Y" : "N");
+            }
+        } else {
+            ImGui::Text("Camera: N/A");
+        }
     }
 
     for(auto& ui_part : GameFlow::gStore.debugData.ui_parts)

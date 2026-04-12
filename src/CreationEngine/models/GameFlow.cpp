@@ -129,4 +129,11 @@ namespace GameFlow
         auto p_camera = CreationEngineSingletonManager::GetPlayerCameraSingleton();
         return p_camera && p_camera->IsInFirstPerson();
     }
+    bool isInShipOrVehicle() {
+        // actorState2 bit 12 (0x1000) is set when player is in ship cockpit.
+        // Discovered via debug: on foot actorState2=0x2080, in ship=0x3080.
+        auto p_player = CreationEngineSingletonManager::GetPlayerRef();
+        if (!p_player) return false;
+        return (p_player->actorState2 & 0x1000) != 0;
+    }
 }

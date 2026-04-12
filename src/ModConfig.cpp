@@ -11,6 +11,7 @@
 #include "CreationEngine/CreationEngineEntry.h"
 #include "CreationEngine/GameSettingsComponent.h"
 #include "CreationEngine/models/ModSettingsStore.h"
+#include "CreationEngine/models/GameFlow.h"
 
 namespace ModSettings {
     // HudScale g_hudScale;
@@ -236,8 +237,12 @@ void VR::on_xinput_get_state(uint32_t* retval, uint32_t user_index, XINPUT_STATE
     pXinputGamepad->sThumbLX = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbLX + left_joystick_axis.x * 32767.0f), -32767.0f, 32767.0f);
     pXinputGamepad->sThumbLY = (int16_t)std::clamp<float>(((float)pXinputGamepad->sThumbLY + left_joystick_axis.y * 32767.0f), -32767.0f, 32767.0f);
 
-    // Snap turn: instant yaw rotation, no pitch from stick
-    if (GameFlow::gStore.internalSettings.snapTurn) {
+    // Snap turn: instant yaw rotation, no pitch from stick.
+    // Automatically disabled when not in first person (in ship, buggy, etc.)
+    // so right stick can be used for ship pitch/yaw normally.
+    const bool snap_turn_active = GameFlow::gStore.internalSettings.snapTurn
+        && !GameFlow::isInShipOrVehicle();
+    if (snap_turn_active) {
         static bool snap_triggered = false;
         constexpr float snap_threshold = 0.6f;
         constexpr float snap_reset_threshold = 0.3f;

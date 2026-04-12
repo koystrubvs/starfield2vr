@@ -36,6 +36,7 @@ namespace GameFlow {
     bool isImmovable();
     bool isControlledByAI();
     bool isInFirstPerson();
+    bool isInShipOrVehicle();
     void resetGameState();
 }
 
