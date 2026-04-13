@@ -29,6 +29,8 @@ namespace GameFlow
             bool snapTurn{false};
             float snapTurnAngle{45.0f};
             float snapTurnPending{0.0f}; // non-zero = apply this yaw delta (radians) in camera manager
+            bool motionControlAiming{false};      // right controller drives weapon aim direction
+            float motionControlSmoothing{0.5f};   // aim smoothing: 0=instant, 1=max smoothing
         } internalSettings{};
         DebugData debugData{};
     };

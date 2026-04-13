@@ -9,6 +9,7 @@
 
 #include "CreationEngineCameraManager.h"
 #include "CreationEngineInputManager.h"
+#include "CreationEngineMotionControlModule.h"
 #include "CreationEngineRendererModule.h"
 #include "CreationEngineSingletonManager.h"
 #include "RE/P/PlayerCamera.h"
@@ -18,6 +19,7 @@ std::optional<std::string> CreationEngineEntry::on_initialize()
     CreationEngineCameraManager::Get()->InstallHooks();
     CreationEngineRendererModule::Get()->InstallHooks();
     CreationEngineInputManager::Get()->Init();
+    CreationEngineMotionControlModule::Get(); // initialize motion control module
     return Mod::on_initialize();
 }
 
@@ -72,6 +74,12 @@ void CreationEngineEntry::on_draw_ui()
     if(m_snap_turn_angle->draw("Угол поворота")) {
         GameFlow::gStore.internalSettings.snapTurnAngle = m_snap_turn_angle->value();
     }
+    if(m_motion_control_aiming->draw("Motion control aiming")) {
+        GameFlow::gStore.internalSettings.motionControlAiming = m_motion_control_aiming->value();
+    }
+    if(m_motion_control_smoothing->draw("Aim smoothing")) {
+        GameFlow::gStore.internalSettings.motionControlSmoothing = m_motion_control_smoothing->value();
+    }
 
     // Debug: show camera state for snap turn debugging
     {
@@ -107,6 +115,16 @@ void CreationEngineEntry::on_draw_ui()
                 ImGui::Text("actorState2: 0x%08X", p_player->actorState2);
                 ImGui::Text("FlyState: %d", (p_player->actorState >> 14) & 7);
                 ImGui::Text("WeaponDrawn: %s", p_player->IsWeaponDrawn() ? "Y" : "N");
+            }
+
+            // Motion control debug info
+            auto motionCtrl = CreationEngineMotionControlModule::Get();
+            ImGui::Text("MotionCtrl: %s", motionCtrl->IsActive() ? "ACTIVE" : "off");
+            if (motionCtrl->IsActive()) {
+                auto rot = motionCtrl->GetAimRotation();
+                ImGui::Text("CtrlAim: [%.2f,%.2f,%.2f,%.2f]", rot.x, rot.y, rot.z, rot.w);
+                auto vel = motionCtrl->GetControllerVelocity();
+                ImGui::Text("CtrlVel: [%.2f,%.2f,%.2f]", vel.x, vel.y, vel.z);
             }
         } else {
             ImGui::Text("Camera: N/A");
@@ -254,6 +272,8 @@ void CreationEngineEntry::on_config_load(const utility::Config& cfg, bool set_de
     GameFlow::gStore.internalSettings.decoupledPitch = m_decoupled_pitch->value();
     GameFlow::gStore.internalSettings.snapTurn = m_snap_turn->value();
     GameFlow::gStore.internalSettings.snapTurnAngle = m_snap_turn_angle->value();
+    GameFlow::gStore.internalSettings.motionControlAiming = m_motion_control_aiming->value();
+    GameFlow::gStore.internalSettings.motionControlSmoothing = m_motion_control_smoothing->value();
 }
 
 void CreationEngineEntry::on_config_save(utility::Config& cfg)

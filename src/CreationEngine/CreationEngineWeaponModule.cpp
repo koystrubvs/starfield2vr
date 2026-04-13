@@ -1,4 +1,5 @@
 #include "CreationEngineWeaponModule.h"
+#include "CreationEngineMotionControlModule.h"
 #include "CreationEngineSingletonManager.h"
 #include <CreationEngine/memory/ScanHelper.h>
 #include <CreationEngine/models/GameFlow.h>
@@ -41,14 +42,36 @@ uintptr_t CreationEngineWeaponModule::onUpdateWorld(RE::NiAVObject* a_object, RE
         }
 
         if(obj_int && (uintptr_t )obj_int == (uintptr_t)a_object) {
-            auto rotate_obj = a_object;
-            auto rotate = glm::mat4(*(glm::mat3x4*)& rotate_obj->local.rotate);
-            rotate = glm::rowMajor4(rotate);
-            rotate = glm::rotate(rotate, glm::radians(debugWeaponData.roll), { 1.0f, 0.0f, 0.0f });
-            rotate = glm::rotate(rotate, glm::radians(debugWeaponData.pitch), { 0.0f, 1.0f, 0.0f });
-            rotate = glm::rotate(rotate, glm::radians(debugWeaponData.yaw), { 0.0f, 0.0f, 1.0f });
-            rotate = glm::rowMajor4(rotate);
-            rotate_obj->local.rotate = *(RE::NiMatrix3*)&rotate;
+            auto motionCtrl = CreationEngineMotionControlModule::Get();
+
+            if (motionCtrl->IsActive()) {
+                // Motion controls active: override weapon node rotation with controller pose
+                auto weaponTransform = motionCtrl->GetWeaponTransform();
+
+                // Extract controller rotation (column-major glm::mat4 → 3x3)
+                auto controllerRot = glm::mat4(glm::mat3(weaponTransform));
+                controllerRot = glm::rowMajor4(controllerRot);
+
+                // Get parent's world rotation using same cast pattern as existing code
+                if (a_object->parent) {
+                    auto parentWorld = glm::mat4(*(glm::mat3x4*)&a_object->parent->world.rotate);
+                    parentWorld = glm::rowMajor4(parentWorld);
+                    auto parentWorldInverse = glm::inverse(glm::mat3(parentWorld));
+                    auto localRot = glm::mat4(parentWorldInverse * glm::mat3(controllerRot));
+                    localRot = glm::rowMajor4(localRot);
+                    a_object->local.rotate = *(RE::NiMatrix3*)&localRot;
+                }
+            } else {
+                // Existing debug rotation logic (when motion controls are off)
+                auto rotate_obj = a_object;
+                auto rotate = glm::mat4(*(glm::mat3x4*)& rotate_obj->local.rotate);
+                rotate = glm::rowMajor4(rotate);
+                rotate = glm::rotate(rotate, glm::radians(debugWeaponData.roll), { 1.0f, 0.0f, 0.0f });
+                rotate = glm::rotate(rotate, glm::radians(debugWeaponData.pitch), { 0.0f, 1.0f, 0.0f });
+                rotate = glm::rotate(rotate, glm::radians(debugWeaponData.yaw), { 0.0f, 0.0f, 1.0f });
+                rotate = glm::rowMajor4(rotate);
+                rotate_obj->local.rotate = *(RE::NiMatrix3*)&rotate;
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
+#include <glm/gtc/quaternion.hpp>
 
 namespace GameFlow {
     struct MenuSettings
@@ -24,6 +25,12 @@ namespace GameFlow {
             glm::vec3 weaponRayCastOrigin{};
             glm::vec3 weaponRayCastDestination{};
         } rayCastData{};
+
+        struct MotionControlData {
+            glm::vec3 controllerPosition{};
+            glm::quat controllerRotation{1.f, 0.f, 0.f, 0.f};
+            bool active{false};
+        } motionControlData{};
     };
 
     extern State gState;
