@@ -133,7 +133,7 @@ void UpdateMesh(RE::NiAVObject* camera) {
     glm::quat tracking_rotation_quat;
 
     if (motionCtrl->ShouldUseControllerAim()) {
-        tracking_rotation_quat = motionCtrl->GetAimRotation();
+        tracking_rotation_quat = motionCtrl->GetMeshTrackingRotation();
     } else {
         auto current_hmd_rotation = vr->get_rotation(0);
         tracking_rotation_quat = glm::normalize(glm::quat_cast(current_hmd_rotation));

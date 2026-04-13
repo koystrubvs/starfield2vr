@@ -15,7 +15,10 @@ public:
     // Called each frame to refresh controller pose data
     void Update();
 
-    // Get controller rotation in Havok/game space (for aim direction)
+    // Get controller rotation for weapon mesh tracking (same coordinate space as HMD in UpdateMesh)
+    [[nodiscard]] glm::quat GetMeshTrackingRotation() const { return m_meshTrackingRotation; }
+
+    // Get controller rotation in Havok/game space (for aim direction / raycasts)
     [[nodiscard]] glm::quat GetAimRotation() const { return m_smoothedAimRotation; }
 
     // Get controller transform in Havok/game space (for weapon positioning)
@@ -41,6 +44,7 @@ private:
 
     glm::mat4 m_rightControllerTransform{ glm::identity<glm::mat4>() };
     glm::quat m_rightControllerRotation{ glm::identity<glm::quat>() };
+    glm::quat m_meshTrackingRotation{ glm::identity<glm::quat>() };  // same coord space as HMD in UpdateMesh
     glm::vec3 m_rightControllerVelocity{ 0.f };
     glm::quat m_smoothedAimRotation{ glm::identity<glm::quat>() };
 };

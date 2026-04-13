@@ -42,9 +42,15 @@ void CreationEngineMotionControlModule::Update()
     controller_transform[3].y -= standing_origin[3].y;
     controller_transform[3].z -= standing_origin[3].z;
 
-    // Convert from OpenXR coordinate space to game/Havok space
+    // Convert from OpenXR coordinate space to game/Havok space (for raycasts/aim)
     m_rightControllerTransform = to_havok_space(controller_transform);
     m_rightControllerRotation = glm::normalize(glm::quat_cast(m_rightControllerTransform));
+
+    // Compute mesh tracking rotation using the SAME coordinate conversion as HMD in UpdateMesh:
+    // UpdateMesh does: quat_cast(vr->get_rotation(0)) then swizzle {w, x, -z, y}
+    auto controller_rotation = vr->get_rotation(right_index);
+    auto raw_quat = glm::normalize(glm::quat_cast(controller_rotation));
+    m_meshTrackingRotation = glm::quat(raw_quat.w, raw_quat.x, -raw_quat.z, raw_quat.y);
 
     // Get velocity for future gesture detection
     auto velocity = vr->get_velocity(right_index);
