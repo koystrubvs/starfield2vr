@@ -74,10 +74,10 @@ void CreationEngineEntry::on_draw_ui()
     if(m_snap_turn_angle->draw("Угол поворота")) {
         GameFlow::gStore.internalSettings.snapTurnAngle = m_snap_turn_angle->value();
     }
-    if(m_motion_control_aiming->draw("Motion control aiming")) {
+    if(m_motion_control_aiming->draw("Прицеливание контроллером")) {
         GameFlow::gStore.internalSettings.motionControlAiming = m_motion_control_aiming->value();
     }
-    if(m_motion_control_smoothing->draw("Aim smoothing")) {
+    if(m_motion_control_smoothing->draw("Сглаживание прицела")) {
         GameFlow::gStore.internalSettings.motionControlSmoothing = m_motion_control_smoothing->value();
     }
 
