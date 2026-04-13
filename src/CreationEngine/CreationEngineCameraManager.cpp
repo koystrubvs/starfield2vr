@@ -124,9 +124,12 @@ void UpdateMesh(RE::NiAVObject* camera) {
     auto camera_quat = RE::NiQuaternion(camera->world.rotate);
     auto glm_camera_quat = glm::normalize(glm::quat(camera_quat.w, camera_quat.x, camera_quat.y, camera_quat.z));
 
+    // Update motion control module (reads controller poses once per call)
+    auto motionCtrl = CreationEngineMotionControlModule::Get();
+    motionCtrl->Update();
+
     // When motion controls are active, use controller rotation for the weapon mesh
     // instead of HMD rotation — this makes the weapon visually follow the controller
-    auto motionCtrl = CreationEngineMotionControlModule::Get();
     glm::quat tracking_rotation_quat;
 
     if (motionCtrl->ShouldUseControllerAim()) {
@@ -281,9 +284,6 @@ float CreationEngineCameraManager::get_head_tracking_multiplier() const {
 
 
 void CreationEngineCameraManager::UpdateWorldCamera() {
-    // Update motion control module each frame (reads controller poses)
-    CreationEngineMotionControlModule::Get()->Update();
-
     static auto vr = VR::get();
     auto worldCamera = CreationEngineSingletonManager::GetSceneGraphRoot()->worldCamera;
 
@@ -348,22 +348,9 @@ void CreationEngineCameraManager::onFPSGetCameraRotation(RE::FirstPersonState *f
         float pitch, yaw, roll;
         havok_rotation.ToEulerAnglesXYZ(pitch, roll, yaw);
 
-        // Get HMD rotation (always needed for pawn control yaw tracking)
         auto current_hmd_rotation = vr->get_rotation(0);
         auto rotation_quat = glm::normalize(glm::quat_cast(to_havok_space(current_hmd_rotation)));
         auto ni_hmd_rotation = RE::NiQuaternion(rotation_quat.w, rotation_quat.x, rotation_quat.y, rotation_quat.z);
-
-        // Determine which rotation to use for the game character's aim direction:
-        // - Motion controls active: use right controller rotation
-        // - Otherwise: use HMD rotation (existing behavior)
-        auto motionCtrl = CreationEngineMotionControlModule::Get();
-        RE::NiQuaternion ni_aim_rotation = ni_hmd_rotation;
-
-        if (motionCtrl->ShouldUseControllerAim()) {
-            auto ctrl_rot = motionCtrl->GetAimRotation();
-            ni_aim_rotation = RE::NiQuaternion(ctrl_rot.w, ctrl_rot.x, ctrl_rot.y, ctrl_rot.z);
-        }
-
         {
             if (GameFlow::gStore.internalSettings.pawnControl) {
                 yaw -= yaw_offset;
@@ -371,8 +358,6 @@ void CreationEngineCameraManager::onFPSGetCameraRotation(RE::FirstPersonState *f
 
                 auto new_quat = RE::NiQuaternion(havok_rotation);
 
-                // Pawn control yaw tracking always uses HMD rotation
-                // (player turns body by looking with head, not by pointing controller)
                 new_quat = new_quat * ni_hmd_rotation;
 
                 auto delta = quat_out->InvertVector() * new_quat;
@@ -396,8 +381,9 @@ void CreationEngineCameraManager::onFPSGetCameraRotation(RE::FirstPersonState *f
                 pitch = 0.0f;
             }
             havok_rotation.FromEulerAnglesXYZ(pitch, roll, yaw);
-            // Use the aim rotation (controller or HMD depending on motion control state)
-            *quat_out = RE::NiQuaternion(havok_rotation) * ni_aim_rotation;
+            // Always use HMD rotation here — this quaternion feeds the camera root node.
+            // Controller rotation is applied separately to weapon meshes in UpdateMesh().
+            *quat_out = RE::NiQuaternion(havok_rotation) * ni_hmd_rotation;
         }
     } else {
         yaw_offset = 0.0f;
